@@ -3,24 +3,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ServiceModel;
 
 namespace BankService
 {
     class Service : IBankService
     {
+        //определение, существует ли в базе счет с данным номером
+        public bool AccountExists(int accountNo)
+        {
+            using (AccountEntities db = new AccountEntities())
+            {
+                return db.accounts.Any(a => a.account == accountNo);
+            }
+        }
+
+        //баналс по счету с данным номером
         public decimal Balance(int accountNo)
         {
             using (AccountEntities db = new AccountEntities())
             {
-                if(db.accounts.Any(a=>a.account==accountNo))
+                if (db.accounts.Any(a => a.account == accountNo))
                 {
                     return db.accounts.Find(accountNo).balance;
                 }
                 else
-                    throw new ArgumentOutOfRangeException($"Счет № {accountNo} отсутствует в базе");
+                {
+                    throw new ArgumentException();
+                }
             }
         }
 
+        //изменение баланса по счету
+        [OperationBehavior(TransactionScopeRequired = true, TransactionAutoComplete = true)]
         public void Change(int accountNo, decimal sum)
         {
             using (AccountEntities db = new AccountEntities())
@@ -33,10 +48,14 @@ namespace BankService
                     db.SaveChanges();
                 }
                 else
-                    throw new ArgumentOutOfRangeException($"Счет № {accountNo} отсутствует в базе");
+                {
+                    throw new ArgumentException();
+                }
             }
         }
 
+        //создание счета
+        [OperationBehavior(TransactionScopeRequired = true, TransactionAutoComplete = true)]
         public void Create(int accountNo)
         {
             using (AccountEntities db = new AccountEntities())
@@ -48,10 +67,14 @@ namespace BankService
                     db.SaveChanges();
                 }
                 else
-                    throw new ArgumentOutOfRangeException($"Счет № {accountNo} отсутствует в базе");
+                {
+                    throw new ArgumentException();
+                }
             }
         }
 
+        //удаление счета
+        [OperationBehavior(TransactionScopeRequired = true, TransactionAutoComplete = true)]
         public void Delete(int accountNo)
         {
             using (AccountEntities db = new AccountEntities())
@@ -63,23 +86,28 @@ namespace BankService
                     db.SaveChanges();
                 }
                 else
-                    throw new ArgumentOutOfRangeException($"Счет № {accountNo} отсутствует в базе");
+                {
+                    throw new ArgumentException();
+                }
             }
         }
 
+        //выписка движение по счету
         public IEnumerable<TransactionData> Movement(int accountNo)
         {
             using (AccountEntities db = new AccountEntities())
             {
                 if (db.accounts.Any(a => a.account == accountNo))
                 {
-                    var trans = db.transactions.Where(t => t.id == accountNo).OrderBy(t => t.transDate).Select(t => new TransactionData { transDate = t.transDate, transAmount = t.transAmount }).ToList();
-                    return trans;
-      
+                    return db.transactions.Where(t => t.id == accountNo).OrderBy(t => t.transDate).Select(t => new TransactionData { transDate = t.transDate, transAmount = t.transAmount }).ToList();
+
                 }
                 else
-                    throw new ArgumentOutOfRangeException($"Счет № {accountNo} отсутствует в базе");
+                {
+                    throw new ArgumentException();
+                }
             }
         }
     }
+
 }

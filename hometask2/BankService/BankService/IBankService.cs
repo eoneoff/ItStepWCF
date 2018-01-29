@@ -11,13 +11,13 @@ namespace BankService
     [ServiceContract]
     interface IBankService
     {
-        [OperationContract]
+        [OperationContract(IsOneWay = true)]
         void Create(int accountNo);
 
-        [OperationContract]
+        [OperationContract (IsOneWay = true)]
         void Change(int accountNo, decimal sum);
 
-        [OperationContract]
+        [OperationContract(IsOneWay = true)]
         void Delete(int accountNo);
 
         [OperationContract]
@@ -25,6 +25,9 @@ namespace BankService
 
         [OperationContract]
         IEnumerable<TransactionData> Movement(int accountNo);
+
+        [OperationContract]
+        bool AccountExists(int accountNo);
     }
 
     [DataContract]
