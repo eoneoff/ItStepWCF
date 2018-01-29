@@ -13,6 +13,7 @@ namespace BankService
     using System.Collections.Generic;
 
 
+
     public partial class transactions
     {
         public int id { get; set; }

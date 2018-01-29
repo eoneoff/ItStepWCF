@@ -25,7 +25,7 @@ namespace BankService
             {
                 if (db.accounts.Any(a => a.account == accountNo))
                 {
-                    return db.accounts.Find(accountNo).balance;
+                    return db.accounts.First(a=>a.account==accountNo).balance;
                 }
                 else
                 {
@@ -42,7 +42,7 @@ namespace BankService
             {
                 if (db.accounts.Any(a => a.account == accountNo))
                 {
-                    accounts account = db.accounts.Find(accountNo);
+                    accounts account = db.accounts.First(a=>a.account==accountNo);
                     transactions transaction = new transactions { accounts = account, transAmount = sum, transDate = DateTime.Now };
                     db.transactions.Add(transaction);
                     db.SaveChanges();
@@ -60,7 +60,7 @@ namespace BankService
         {
             using (AccountEntities db = new AccountEntities())
             {
-                if (db.accounts.Any(a => a.account == accountNo))
+                if (!db.accounts.Any(a => a.account == accountNo))
                 {
                     accounts account = new accounts { account = accountNo, balance = 0 };
                     db.accounts.Add(account);
@@ -81,7 +81,7 @@ namespace BankService
             {
                 if (db.accounts.Any(a => a.account == accountNo))
                 {
-                    accounts account = db.accounts.Find(accountNo);
+                    accounts account = db.accounts.First(a=>a.account==accountNo);
                     db.accounts.Remove(account);
                     db.SaveChanges();
                 }
@@ -99,7 +99,19 @@ namespace BankService
             {
                 if (db.accounts.Any(a => a.account == accountNo))
                 {
-                    return db.transactions.Where(t => t.id == accountNo).OrderBy(t => t.transDate).Select(t => new TransactionData { transDate = t.transDate, transAmount = t.transAmount }).ToList();
+                    int accId = db.accounts.First(a => a.account == accountNo).id;
+                    var movement = db.transactions.
+                        Where(t => t.accId == accId).
+                        OrderBy(t => t.transDate).ToList();
+
+                    List<TransactionData> result = new List<TransactionData>();
+
+                    foreach(var t in movement)
+                    {
+                        result.Add(new TransactionData { transDate = t.transDate, transAmount = t.transAmount });
+                    }
+
+                    return result;
 
                 }
                 else
